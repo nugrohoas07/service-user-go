@@ -15,6 +15,13 @@ type (
 		Data    interface{} `json:"data,omitempty"`
 	}
 
+	jsonResponseWithPaging struct {
+		Code    string      `json:"responseCode"`
+		Message string      `json:"message,omitempty"`
+		Data    interface{} `json:"data,omitempty"`
+		Paging  *Paging     `json:"paging,omitempty"`
+	}
+
 	// JSONResponse - struct for json response error
 	jsonErrorResponse struct {
 		Code    string `json:"responseCode"`
@@ -25,6 +32,11 @@ type (
 	ValidationField struct {
 		FieldName string `json:"field"`
 		Message   string `json:"message"`
+	}
+
+	Paging struct {
+		Page      int `json:"page,omitempty"`
+		TotalData int `json:"totalData,omitempty"`
 	}
 
 	jsonBadRequestResponse struct {
@@ -40,6 +52,17 @@ func NewResponseSuccess(c *gin.Context, result interface{}, message, serviceCode
 		Message: message,
 		Data:    result,
 	})
+}
+
+func NewResponseSuccessWithPaging(c *gin.Context, result interface{}, paging Paging, message, serviceCode, responseCode string) {
+	c.JSON(http.StatusOK, jsonResponseWithPaging{
+		Code:    "200" + serviceCode + responseCode,
+		Message: message,
+		Data:    result,
+		Paging:  &paging,
+	})
+	// TODO
+	// paging still show up even if its empty
 }
 
 func NewResponseBadRequest(c *gin.Context, validationField []ValidationField, message, serviceCode, errorCode string) {

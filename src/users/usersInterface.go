@@ -12,6 +12,7 @@ type UsersRepository interface {
 	GetUserById(userId string) (usersEntity.UserData, error)
 	SoftDeleteUser(userId string) error
 	EditUser(oldUser usersEntity.UserData, updatedUser usersDto.UpdateUserRequest) error
+	GetUsers(queryParams usersDto.Query) ([]usersEntity.UserData, int, error)
 }
 
 type UsersUseCase interface {
@@ -20,4 +21,5 @@ type UsersUseCase interface {
 	GetUserById(userId string) (usersEntity.UserData, error)
 	DeleteUserById(userId string) error
 	UpdateUserById(paramUserId string, updatedUser usersDto.UpdateUserRequest) error
+	GetAllUsers(queryParams usersDto.Query) ([]usersEntity.UserData, int, error)
 }

@@ -46,6 +46,14 @@ func (usecase *usersUseCase) AddUser(newUser usersDto.CreateUserRequest) error {
 	return nil
 }
 
+func (usecase *usersUseCase) GetAllUsers(queryParams usersDto.Query) ([]usersEntity.UserData, int, error) {
+	listUsers, totalData, err := usecase.usersRepo.GetUsers(queryParams)
+	if err != nil {
+		return nil, 0, err
+	}
+	return listUsers, totalData, nil
+}
+
 func (usercase *usersUseCase) GetUserById(userId string) (usersEntity.UserData, error) {
 	userData, err := usercase.usersRepo.GetUserById(userId)
 	if err != nil {

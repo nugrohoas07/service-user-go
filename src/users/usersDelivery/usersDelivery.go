@@ -22,7 +22,7 @@ func NewUsersDelivery(v1Group *gin.RouterGroup, usersUC users.UsersUseCase) {
 	{
 		usersGroup.POST("/login")                     // login user with email:password
 		usersGroup.POST("/create", handler.AddUser)   // create new user
-		usersGroup.GET("/")                           //get list all users
+		usersGroup.GET("/", handler.GetUsers)         //get list all users
 		usersGroup.GET("/:id", handler.GetUserById)   // get user data by userId
 		usersGroup.PUT("/:id", handler.UpdateUser)    // edit user data by userId
 		usersGroup.DELETE("/:id", handler.DeleteUser) // soft delete user by userId
@@ -46,6 +46,38 @@ func (ud *usersDelivery) AddUser(ctx *gin.Context) {
 	}
 
 	json.NewResponseSuccess(ctx, nil, "success", "01", "01")
+}
+
+func (ud *usersDelivery) GetUsers(ctx *gin.Context) {
+	var queryParams usersDto.Query
+	if err := ctx.ShouldBindQuery(&queryParams); err != nil {
+		validationError := validation.GetValidationError(err)
+		if len(validationError) > 0 {
+			json.NewResponseBadRequest(ctx, validationError, "bad request", "01", "02")
+			return
+		}
+	}
+
+	listUsers, totalData, err := ud.usersUC.GetAllUsers(queryParams)
+	if err != nil {
+		json.NewResponseError(ctx, err.Error(), "01", "01")
+		return
+	}
+
+	if len(listUsers) == 0 {
+		json.NewResponseSuccess(ctx, nil, "data not found", "01", "01")
+		return
+	}
+
+	var paging json.Paging
+	if queryParams.Page != 0 && queryParams.Size != 0 {
+		paging = json.Paging{
+			Page:      queryParams.Page,
+			TotalData: totalData,
+		}
+	}
+
+	json.NewResponseSuccessWithPaging(ctx, listUsers, paging, "", "01", "02")
 }
 
 func (ud *usersDelivery) GetUserById(ctx *gin.Context) {

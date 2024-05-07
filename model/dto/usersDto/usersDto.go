@@ -21,4 +21,11 @@ type (
 	Param struct {
 		ID string `uri:"id" binding:"required,uuid4"`
 	}
+
+	Query struct {
+		Email    string `form:"email" binding:"omitempty,email"`
+		Fullname string `form:"fullname" binding:"omitempty"`
+		Page     int    `form:"page" binding:"omitempty,number"`
+		Size     int    `form:"size" binding:"omitempty,number"`
+	}
 )

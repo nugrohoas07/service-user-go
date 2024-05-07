@@ -27,6 +27,49 @@ func (repo *usersRepository) InsertUser(newUser usersDto.CreateUserRequest) erro
 	return nil
 }
 
+func (repo *usersRepository) GetUsers(queryParams usersDto.Query) ([]usersEntity.UserData, int, error) {
+	fmt.Println("MASUK REPO")
+	var rows *sql.Rows
+	var err error
+
+	query := `SELECT id,fullname,email,password FROM users
+	WHERE 1=1
+	AND ($1 = '' OR email = $1)
+	AND ($2 = '' OR fullname = $2)
+	ORDER BY fullname ASC`
+
+	countQuery := `SELECT COUNT(*)
+	FROM users
+	WHERE 1=1
+	AND ($1 = '' OR email = $1)
+	AND ($2 = '' OR fullname = $2)`
+
+	if queryParams.Page != 0 && queryParams.Size != 0 {
+		offset := (queryParams.Page - 1) * queryParams.Size
+		query += " LIMIT $3 OFFSET $4"
+		rows, err = repo.db.Query(query, queryParams.Email, queryParams.Fullname, queryParams.Size, offset)
+	} else {
+		rows, err = repo.db.Query(query, queryParams.Email, queryParams.Fullname)
+	}
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	//get total data
+	var totalData int
+	err = repo.db.QueryRow(countQuery, queryParams.Email, queryParams.Fullname).Scan(&totalData)
+	if err != nil {
+		fmt.Println("ERROR PAS NGITUNG")
+		return nil, 0, fmt.Errorf("internal server error")
+	}
+
+	listUsers := scanUsers(rows)
+	fmt.Println("list :", listUsers)
+	fmt.Println("totalData :", totalData)
+	return listUsers, totalData, nil
+}
+
 func (repo *usersRepository) GetUserById(userId string) (usersEntity.UserData, error) {
 	var userData usersEntity.UserData
 	query := "SELECT id,fullname,email,password FROM users WHERE id = $1 AND deleted_at IS NULL"
@@ -78,4 +121,19 @@ func (repo *usersRepository) CheckEmailExist(email string) string {
 	query := "SELECT email FROM users WHERE email = $1"
 	repo.db.QueryRow(query, email).Scan(&duplicateEmail)
 	return duplicateEmail
+}
+
+func scanUsers(rows *sql.Rows) []usersEntity.UserData {
+	var users []usersEntity.UserData
+	var err error
+	for rows.Next() {
+		user := usersEntity.UserData{}
+		err = rows.Scan(&user.ID, &user.FullName, &user.Email, &user.Password)
+		if err != nil {
+			panic(err)
+		}
+		users = append(users, user)
+	}
+
+	return users
 }
