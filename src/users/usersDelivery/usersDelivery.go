@@ -1,6 +1,7 @@
 package usersDelivery
 
 import (
+	"fmt"
 	"service-user/middlewares"
 	"service-user/model/dto/json"
 	"service-user/model/dto/usersDto"
@@ -8,6 +9,8 @@ import (
 	"service-user/src/users"
 	"strings"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,14 +22,15 @@ func NewUsersDelivery(v1Group *gin.RouterGroup, usersUC users.UsersUseCase) {
 	handler := usersDelivery{
 		usersUC: usersUC,
 	}
+	store := memstore.NewStore([]byte("secret"))
 	usersGroup := v1Group.Group("/users")
 	{
-		usersGroup.POST("/login", middlewares.BasicAuth, handler.Login)
-		usersGroup.POST("/create", middlewares.JwtAuth(), handler.AddUser)   // create new user
-		usersGroup.GET("/", middlewares.JwtAuth(), handler.GetUsers)         //get list all users
-		usersGroup.GET("/:id", middlewares.JwtAuth(), handler.GetUserById)   // get user data by userId
-		usersGroup.PUT("/:id", middlewares.JwtAuth(), handler.UpdateUser)    // edit user data by userId
-		usersGroup.DELETE("/:id", middlewares.JwtAuth(), handler.DeleteUser) // soft delete user by userId
+		usersGroup.POST("/login", middlewares.BasicAuth, sessions.Sessions("mysession", store), handler.Login)
+		usersGroup.POST("/create", middlewares.JwtAuth(), handler.AddUser)                                          // create new user
+		usersGroup.GET("/", middlewares.JwtAuth(), handler.GetUsers)                                                //get list all users
+		usersGroup.GET("/:id", middlewares.JwtAuth(), handler.GetUserById)                                          // get user data by userId
+		usersGroup.PUT("/:id", middlewares.JwtAuth(), handler.UpdateUser)                                           // edit user data by userId
+		usersGroup.DELETE("/:id", middlewares.JwtAuth(), sessions.Sessions("mysession", store), handler.DeleteUser) // soft delete user by userId
 	}
 }
 
@@ -52,6 +56,16 @@ func (ud *usersDelivery) Login(ctx *gin.Context) {
 		json.NewResponseError(ctx, errMsg, "01", "01")
 		return
 	}
+
+	userId, err := ud.usersUC.GetUserIdByEmail(req.Email)
+	if err != nil {
+		json.NewAbortUnauthorized(ctx, err.Error(), "01", "01")
+		return
+	}
+
+	session := sessions.Default(ctx)
+	session.Set("userId", userId)
+	session.Save()
 
 	json.NewResponseSuccess(ctx, map[string]interface{}{"token": token}, "", "01", "01")
 }
@@ -154,6 +168,10 @@ func (ud *usersDelivery) UpdateUser(ctx *gin.Context) {
 }
 
 func (ud *usersDelivery) DeleteUser(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	loggedUserId := session.Get("userId")
+	fmt.Println("DARI SESSION :", loggedUserId)
+
 	var param usersDto.Param
 	if err := ctx.ShouldBindUri(&param); err != nil {
 		validationError := validation.GetValidationError(err)
@@ -161,6 +179,11 @@ func (ud *usersDelivery) DeleteUser(ctx *gin.Context) {
 			json.NewResponseBadRequest(ctx, validationError, "bad request", "01", "02")
 			return
 		}
+	}
+
+	if loggedUserId == param.ID {
+		json.NewAbortForbidden(ctx, "action not allowed", "01", "01")
+		return
 	}
 
 	err := ud.usersUC.DeleteUserById(param.ID)

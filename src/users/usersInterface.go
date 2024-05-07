@@ -13,6 +13,7 @@ type UsersRepository interface {
 	SoftDeleteUser(userId string) error
 	EditUser(oldUser usersEntity.UserData, updatedUser usersDto.UpdateUserRequest) error
 	GetUsers(queryParams usersDto.Query) ([]usersEntity.UserData, int, error)
+	GetUserIdByEmail(email string) (string, error)
 }
 
 type UsersUseCase interface {
@@ -22,4 +23,5 @@ type UsersUseCase interface {
 	DeleteUserById(userId string) error
 	UpdateUserById(paramUserId string, updatedUser usersDto.UpdateUserRequest) error
 	GetAllUsers(queryParams usersDto.Query) ([]usersEntity.UserData, int, error)
+	GetUserIdByEmail(email string) (string, error)
 }

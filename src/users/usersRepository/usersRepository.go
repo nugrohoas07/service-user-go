@@ -123,6 +123,17 @@ func (repo *usersRepository) CheckEmailExist(email string) string {
 	return duplicateEmail
 }
 
+func (repo *usersRepository) GetUserIdByEmail(email string) (string, error) {
+	fmt.Println("MASUK REPO GetUserIdByEmail")
+	var userId string
+	query := "SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL"
+	err := repo.db.QueryRow(query, email).Scan(&userId)
+	if err != nil {
+		return "", fmt.Errorf("user not found")
+	}
+	return userId, nil
+}
+
 func scanUsers(rows *sql.Rows) []usersEntity.UserData {
 	var users []usersEntity.UserData
 	var err error

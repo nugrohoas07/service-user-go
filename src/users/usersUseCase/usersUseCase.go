@@ -28,8 +28,7 @@ func (usecase *usersUseCase) ValidateEmailPass(username, password string) error 
 	return nil
 }
 
-// TODO
-// encrypt password
+// TODO validate advanced password
 func (usecase *usersUseCase) AddUser(newUser usersDto.CreateUserRequest) error {
 	existedEmail := usecase.usersRepo.CheckEmailExist(newUser.Email)
 	if existedEmail == newUser.Email {
@@ -91,8 +90,6 @@ func (usecase *usersUseCase) UpdateUserById(paramUserId string, updatedUser user
 	return nil
 }
 
-// TODO
-// error if user delete itself
 func (usecase *usersUseCase) DeleteUserById(userId string) error {
 	// check is user id valid
 	_, err := usecase.usersRepo.GetUserById(userId)
@@ -105,4 +102,13 @@ func (usecase *usersUseCase) DeleteUserById(userId string) error {
 		return err
 	}
 	return nil
+}
+
+func (usecase *usersUseCase) GetUserIdByEmail(email string) (string, error) {
+	fmt.Println("MASUK GetUserIdByEmail")
+	userId, err := usecase.usersRepo.GetUserIdByEmail(email)
+	if err != nil {
+		return "", err
+	}
+	return userId, nil
 }

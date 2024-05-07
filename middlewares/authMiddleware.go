@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"fmt"
+	"os"
 	"service-user/model/dto/authDto"
 	"service-user/model/dto/json"
 	"strings"
@@ -48,8 +49,7 @@ func BasicAuth(c *gin.Context) {
 		return
 	}
 
-	// TODO use env
-	if user != "nugroho" || password != "secretpass" {
+	if user != os.Getenv("CLIENT_ID") || password != os.Getenv("CLIENT_SECRET") {
 		json.NewAbortUnauthorized(c, "unauthorized", "01", "01")
 		return
 	}
