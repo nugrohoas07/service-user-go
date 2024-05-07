@@ -102,3 +102,17 @@ func NewResponseNotFound(c *gin.Context, message, serviceCode, errorCode string)
 		Message: message,
 	})
 }
+
+func NewAbortUnauthorized(c *gin.Context, message, serviceCode, errorCode string) {
+	c.AbortWithStatusJSON(http.StatusUnauthorized, jsonResponse{
+		Code:    "401" + serviceCode + errorCode,
+		Message: message,
+	})
+}
+
+func NewAbortForbidden(c *gin.Context, message, serviceCode, errorCode string) {
+	c.AbortWithStatusJSON(http.StatusForbidden, jsonResponse{
+		Code:    "403" + serviceCode + errorCode,
+		Message: message,
+	})
+}

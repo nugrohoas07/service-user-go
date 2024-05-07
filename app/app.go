@@ -73,7 +73,6 @@ func initializeDomainModule(r *gin.Engine, db *sql.DB) {
 	apiGroup := r.Group("/api")
 	v1Group := apiGroup.Group("/v1")
 
-	// router.InitRoute(v1Group, db)
 	router.InitRoute(v1Group, db)
 }
 

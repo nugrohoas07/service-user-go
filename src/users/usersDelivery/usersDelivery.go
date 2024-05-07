@@ -1,6 +1,7 @@
 package usersDelivery
 
 import (
+	"service-user/middlewares"
 	"service-user/model/dto/json"
 	"service-user/model/dto/usersDto"
 	"service-user/pkg/validation"
@@ -20,13 +21,39 @@ func NewUsersDelivery(v1Group *gin.RouterGroup, usersUC users.UsersUseCase) {
 	}
 	usersGroup := v1Group.Group("/users")
 	{
-		usersGroup.POST("/login")                     // login user with email:password
-		usersGroup.POST("/create", handler.AddUser)   // create new user
-		usersGroup.GET("/", handler.GetUsers)         //get list all users
-		usersGroup.GET("/:id", handler.GetUserById)   // get user data by userId
-		usersGroup.PUT("/:id", handler.UpdateUser)    // edit user data by userId
-		usersGroup.DELETE("/:id", handler.DeleteUser) // soft delete user by userId
+		usersGroup.POST("/login", middlewares.BasicAuth, handler.Login)
+		usersGroup.POST("/create", middlewares.JwtAuth(), handler.AddUser)   // create new user
+		usersGroup.GET("/", middlewares.JwtAuth(), handler.GetUsers)         //get list all users
+		usersGroup.GET("/:id", middlewares.JwtAuth(), handler.GetUserById)   // get user data by userId
+		usersGroup.PUT("/:id", middlewares.JwtAuth(), handler.UpdateUser)    // edit user data by userId
+		usersGroup.DELETE("/:id", middlewares.JwtAuth(), handler.DeleteUser) // soft delete user by userId
 	}
+}
+
+func (ud *usersDelivery) Login(ctx *gin.Context) {
+	var req usersDto.LoginRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		validationError := validation.GetValidationError(err)
+		if len(validationError) > 0 {
+			json.NewResponseBadRequest(ctx, validationError, "bad request", "01", "02")
+			return
+		}
+	}
+
+	err := ud.usersUC.ValidateEmailPass(req.Email, req.Password)
+	if err != nil {
+		json.NewAbortUnauthorized(ctx, err.Error(), "01", "01")
+		return
+	}
+
+	token, err := middlewares.GenerateTokenJwt(req.Email, 3)
+	if err != nil {
+		errMsg := "internal server error"
+		json.NewResponseError(ctx, errMsg, "01", "01")
+		return
+	}
+
+	json.NewResponseSuccess(ctx, map[string]interface{}{"token": token}, "", "01", "01")
 }
 
 func (ud *usersDelivery) AddUser(ctx *gin.Context) {

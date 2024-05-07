@@ -16,7 +16,7 @@ type UsersRepository interface {
 }
 
 type UsersUseCase interface {
-	Login(email, password string) error
+	ValidateEmailPass(username, password string) error
 	AddUser(newUser usersDto.CreateUserRequest) error
 	GetUserById(userId string) (usersEntity.UserData, error)
 	DeleteUserById(userId string) error

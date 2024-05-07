@@ -16,11 +16,14 @@ func NewUsersUseCase(usersRepo users.UsersRepository) users.UsersUseCase {
 	return &usersUseCase{usersRepo}
 }
 
-func (usecase *usersUseCase) Login(username, password string) error {
+func (usecase *usersUseCase) ValidateEmailPass(username, password string) error {
 	storedPassword, err := usecase.usersRepo.GetUserPassword(username)
-	fmt.Println("password di db :", storedPassword)
 	if err != nil {
 		return err
+	}
+	err = bcryptHashing.ComparePassword(storedPassword, password)
+	if err != nil {
+		return fmt.Errorf("invalid email or password")
 	}
 	return nil
 }
