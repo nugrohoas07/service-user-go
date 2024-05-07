@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"service-user/model/dto/usersDto"
 	"service-user/model/entity/usersEntity"
+	"service-user/pkg/bcryptHashing"
 	"service-user/src/users"
 )
 
@@ -31,7 +32,14 @@ func (usecase *usersUseCase) AddUser(newUser usersDto.CreateUserRequest) error {
 	if existedEmail == newUser.Email {
 		return fmt.Errorf("email already used")
 	}
-	err := usecase.usersRepo.InsertUser(newUser)
+	// encrypting password
+	hashedPassword, err := bcryptHashing.Hash(newUser.Password)
+	if err != nil {
+		return err
+	}
+	newUser.Password = hashedPassword
+
+	err = usecase.usersRepo.InsertUser(newUser)
 	if err != nil {
 		return err
 	}
@@ -56,6 +64,14 @@ func (usecase *usersUseCase) UpdateUserById(paramUserId string, updatedUser user
 	if err != nil {
 		return err
 	}
+
+	// encrypting password
+	hashedPassword, err := bcryptHashing.Hash(updatedUser.Password)
+	if err != nil {
+		return err
+	}
+	updatedUser.Password = hashedPassword
+
 	// edit process
 	err = usecase.usersRepo.EditUser(oldUserData, updatedUser)
 	if err != nil {
