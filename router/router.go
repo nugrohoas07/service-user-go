@@ -2,11 +2,15 @@ package router
 
 import (
 	"database/sql"
-	"fmt"
+	"service-user/src/users/usersDelivery"
+	"service-user/src/users/usersRepository"
+	"service-user/src/users/usersUseCase"
 
 	"github.com/gin-gonic/gin"
 )
 
 func InitRoute(v1Group *gin.RouterGroup, db *sql.DB) {
-	fmt.Println("Masuk ke init router")
+	usersRepo := usersRepository.NewUsersRepository(db)
+	usersUseCase := usersUseCase.NewUsersUseCase(usersRepo)
+	usersDelivery.NewUsersDelivery(v1Group, usersUseCase)
 }
