@@ -12,6 +12,12 @@ type (
 		Password string `json:"password" binding:"required"`
 	}
 
+	UpdateUserRequest struct {
+		ID       string `json:"id" binding:"required,uuid4"`
+		FullName string `json:"fullname" binding:"omitempty"`
+		Password string `json:"password" binding:"omitempty"`
+	}
+
 	Param struct {
 		ID string `uri:"id" binding:"required,uuid4"`
 	}

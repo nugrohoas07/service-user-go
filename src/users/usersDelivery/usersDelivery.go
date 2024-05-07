@@ -24,7 +24,7 @@ func NewUsersDelivery(v1Group *gin.RouterGroup, usersUC users.UsersUseCase) {
 		usersGroup.POST("/create", handler.AddUser)   // create new user
 		usersGroup.GET("/")                           //get list all users
 		usersGroup.GET("/:id", handler.GetUserById)   // get user data by userId
-		usersGroup.PUT("/:id")                        // edit user data by userId
+		usersGroup.PUT("/:id", handler.UpdateUser)    // edit user data by userId
 		usersGroup.DELETE("/:id", handler.DeleteUser) // soft delete user by userId
 	}
 }
@@ -64,6 +64,34 @@ func (ud *usersDelivery) GetUserById(ctx *gin.Context) {
 	}
 
 	json.NewResponseSuccess(ctx, userData, "", "01", "01")
+}
+
+func (ud *usersDelivery) UpdateUser(ctx *gin.Context) {
+	var param usersDto.Param
+	if err := ctx.ShouldBindUri(&param); err != nil {
+		validationError := validation.GetValidationError(err)
+		if len(validationError) > 0 {
+			json.NewResponseBadRequest(ctx, validationError, "bad request", "01", "02")
+			return
+		}
+	}
+
+	var userUpdatePayload usersDto.UpdateUserRequest
+	if err := ctx.ShouldBindJSON(&userUpdatePayload); err != nil {
+		validationError := validation.GetValidationError(err)
+		if len(validationError) > 0 {
+			json.NewResponseBadRequest(ctx, validationError, "bad request", "01", "02")
+			return
+		}
+	}
+
+	err := ud.usersUC.UpdateUserById(param.ID, userUpdatePayload)
+	if err != nil {
+		json.NewResponseError(ctx, err.Error(), "01", "01")
+		return
+	}
+
+	json.NewResponseSuccess(ctx, nil, "success", "01", "02")
 }
 
 func (ud *usersDelivery) DeleteUser(ctx *gin.Context) {

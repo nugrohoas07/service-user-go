@@ -24,6 +24,8 @@ func (usecase *usersUseCase) Login(username, password string) error {
 	return nil
 }
 
+// TODO
+// encrypt password
 func (usecase *usersUseCase) AddUser(newUser usersDto.CreateUserRequest) error {
 	existedEmail := usecase.usersRepo.CheckEmailExist(newUser.Email)
 	if existedEmail == newUser.Email {
@@ -44,15 +46,34 @@ func (usercase *usersUseCase) GetUserById(userId string) (usersEntity.UserData, 
 	return userData, nil
 }
 
-// TODO
-// error if user delete itself
-func (usercase *usersUseCase) DeleteUserById(userId string) error {
+func (usecase *usersUseCase) UpdateUserById(paramUserId string, updatedUser usersDto.UpdateUserRequest) error {
+	// check is user id from param and payload match
+	if paramUserId != updatedUser.ID {
+		return fmt.Errorf("id not match")
+	}
 	// check is user id valid
-	_, err := usercase.usersRepo.GetUserById(userId)
+	oldUserData, err := usecase.usersRepo.GetUserById(updatedUser.ID)
 	if err != nil {
 		return err
 	}
-	err = usercase.usersRepo.SoftDeleteUser(userId)
+	// edit process
+	err = usecase.usersRepo.EditUser(oldUserData, updatedUser)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// TODO
+// error if user delete itself
+func (usecase *usersUseCase) DeleteUserById(userId string) error {
+	// check is user id valid
+	_, err := usecase.usersRepo.GetUserById(userId)
+	if err != nil {
+		return err
+	}
+	// soft deleting
+	err = usecase.usersRepo.SoftDeleteUser(userId)
 	if err != nil {
 		return err
 	}

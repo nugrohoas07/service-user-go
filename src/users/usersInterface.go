@@ -11,6 +11,7 @@ type UsersRepository interface {
 	CheckEmailExist(email string) string
 	GetUserById(userId string) (usersEntity.UserData, error)
 	SoftDeleteUser(userId string) error
+	EditUser(oldUser usersEntity.UserData, updatedUser usersDto.UpdateUserRequest) error
 }
 
 type UsersUseCase interface {
@@ -18,4 +19,5 @@ type UsersUseCase interface {
 	AddUser(newUser usersDto.CreateUserRequest) error
 	GetUserById(userId string) (usersEntity.UserData, error)
 	DeleteUserById(userId string) error
+	UpdateUserById(paramUserId string, updatedUser usersDto.UpdateUserRequest) error
 }

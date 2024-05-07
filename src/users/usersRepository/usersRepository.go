@@ -6,6 +6,7 @@ import (
 	"service-user/model/dto/usersDto"
 	"service-user/model/entity/usersEntity"
 	"service-user/src/users"
+	"strings"
 	"time"
 )
 
@@ -48,6 +49,21 @@ func (repo *usersRepository) GetUserPassword(email string) (string, error) {
 	return storedPassword, nil
 }
 
+func (repo *usersRepository) EditUser(oldUser usersEntity.UserData, updatedUser usersDto.UpdateUserRequest) error {
+	if strings.TrimSpace(updatedUser.FullName) == "" {
+		updatedUser.FullName = oldUser.FullName
+	}
+	if strings.TrimSpace(updatedUser.Password) == "" {
+		updatedUser.Password = oldUser.Password
+	}
+	query := "UPDATE users SET fullname = $1, password = $2 WHERE id = $3"
+	_, err := repo.db.Exec(query, updatedUser.FullName, updatedUser.Password, updatedUser.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (repo *usersRepository) SoftDeleteUser(userId string) error {
 	query := "UPDATE users SET deleted_at = $1 WHERE id = $2"
 	_, err := repo.db.Exec(query, time.Now(), userId)
@@ -61,6 +77,5 @@ func (repo *usersRepository) CheckEmailExist(email string) string {
 	var duplicateEmail string
 	query := "SELECT email FROM users WHERE email = $1"
 	repo.db.QueryRow(query, email).Scan(&duplicateEmail)
-	fmt.Println("email didapat :", duplicateEmail)
 	return duplicateEmail
 }
