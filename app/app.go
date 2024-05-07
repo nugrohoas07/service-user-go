@@ -125,7 +125,6 @@ func RunService() {
 				special = true
 			}
 		}
-		fmt.Println("up", upperCase, "low", lowerCase, "num", number, "special", special)
 		return upperCase && lowerCase && number && special
 	}
 
