@@ -5,6 +5,7 @@ import (
 	"service-user/model/dto/usersDto"
 	"service-user/pkg/validation"
 	"service-user/src/users"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,12 +20,12 @@ func NewUsersDelivery(v1Group *gin.RouterGroup, usersUC users.UsersUseCase) {
 	}
 	usersGroup := v1Group.Group("/users")
 	{
-		usersGroup.POST("/login")                   // login user with email:password
-		usersGroup.POST("/create", handler.AddUser) // create new user
-		usersGroup.GET("/")                         //get list all users
-		usersGroup.GET("/:id", handler.GetUserById) // get user data by userId
-		usersGroup.PUT("/:id")                      // edit user data by userId
-		usersGroup.DELETE("/:id")                   // soft delete user by userId
+		usersGroup.POST("/login")                     // login user with email:password
+		usersGroup.POST("/create", handler.AddUser)   // create new user
+		usersGroup.GET("/")                           //get list all users
+		usersGroup.GET("/:id", handler.GetUserById)   // get user data by userId
+		usersGroup.PUT("/:id")                        // edit user data by userId
+		usersGroup.DELETE("/:id", handler.DeleteUser) // soft delete user by userId
 	}
 }
 
@@ -47,7 +48,6 @@ func (ud *usersDelivery) AddUser(ctx *gin.Context) {
 	json.NewResponseSuccess(ctx, nil, "success", "01", "01")
 }
 
-// TODO not found error if data with valid id not found in db
 func (ud *usersDelivery) GetUserById(ctx *gin.Context) {
 	var param usersDto.Param
 	if err := ctx.ShouldBindUri(&param); err != nil {
@@ -59,9 +59,31 @@ func (ud *usersDelivery) GetUserById(ctx *gin.Context) {
 	}
 	userData, err := ud.usersUC.GetUserById(param.ID)
 	if err != nil {
-		json.NewResponseError(ctx, err.Error(), "01", "01")
+		json.NewResponseNotFound(ctx, err.Error(), "01", "01")
 		return
 	}
 
 	json.NewResponseSuccess(ctx, userData, "", "01", "01")
+}
+
+func (ud *usersDelivery) DeleteUser(ctx *gin.Context) {
+	var param usersDto.Param
+	if err := ctx.ShouldBindUri(&param); err != nil {
+		validationError := validation.GetValidationError(err)
+		if len(validationError) > 0 {
+			json.NewResponseBadRequest(ctx, validationError, "bad request", "01", "02")
+			return
+		}
+	}
+
+	err := ud.usersUC.DeleteUserById(param.ID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			json.NewResponseNotFound(ctx, err.Error(), "01", "01")
+			return
+		}
+		json.NewResponseError(ctx, err.Error(), "01", "01")
+		return
+	}
+	json.NewResponseSuccess(ctx, nil, "success", "01", "02")
 }

@@ -6,6 +6,7 @@ import (
 	"service-user/model/dto/usersDto"
 	"service-user/model/entity/usersEntity"
 	"service-user/src/users"
+	"time"
 )
 
 type usersRepository struct {
@@ -27,10 +28,10 @@ func (repo *usersRepository) InsertUser(newUser usersDto.CreateUserRequest) erro
 
 func (repo *usersRepository) GetUserById(userId string) (usersEntity.UserData, error) {
 	var userData usersEntity.UserData
-	query := "SELECT id,fullname,email,password FROM users WHERE id = $1"
+	query := "SELECT id,fullname,email,password FROM users WHERE id = $1 AND deleted_at IS NULL"
 	err := repo.db.QueryRow(query, userId).Scan(&userData.ID, &userData.FullName, &userData.Email, &userData.Password)
 	if err != nil {
-		return usersEntity.UserData{}, err
+		return usersEntity.UserData{}, fmt.Errorf("user not found")
 	}
 	return userData, nil
 }
@@ -45,6 +46,15 @@ func (repo *usersRepository) GetUserPassword(email string) (string, error) {
 	}
 
 	return storedPassword, nil
+}
+
+func (repo *usersRepository) SoftDeleteUser(userId string) error {
+	query := "UPDATE users SET deleted_at = $1 WHERE id = $2"
+	_, err := repo.db.Exec(query, time.Now(), userId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (repo *usersRepository) CheckEmailExist(email string) string {

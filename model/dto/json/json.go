@@ -18,7 +18,7 @@ type (
 	// JSONResponse - struct for json response error
 	jsonErrorResponse struct {
 		Code    string `json:"responseCode"`
-		Message string `json:"responseMessage"`
+		Message string `json:"message"`
 		Error   string `json:"error,omitempty"`
 	}
 
@@ -29,7 +29,7 @@ type (
 
 	jsonBadRequestResponse struct {
 		Code             string            `json:"responseCode"`
-		Message          string            `json:"responseMessage"`
+		Message          string            `json:"message"`
 		ErrorDescription []ValidationField `json:"error_description,omitempty"`
 	}
 )
@@ -69,6 +69,13 @@ func NewResponseForbidden(c *gin.Context, message, serviceCode, errorCode string
 func NewResponseUnauthorized(c *gin.Context, message, serviceCode, errorCode string) {
 	c.JSON(http.StatusUnauthorized, jsonResponse{
 		Code:    "401" + serviceCode + errorCode,
+		Message: message,
+	})
+}
+
+func NewResponseNotFound(c *gin.Context, message, serviceCode, errorCode string) {
+	c.JSON(http.StatusNotFound, jsonResponse{
+		Code:    "404" + serviceCode + errorCode,
 		Message: message,
 	})
 }

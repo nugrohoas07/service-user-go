@@ -10,10 +10,12 @@ type UsersRepository interface {
 	GetUserPassword(email string) (string, error)
 	CheckEmailExist(email string) string
 	GetUserById(userId string) (usersEntity.UserData, error)
+	SoftDeleteUser(userId string) error
 }
 
 type UsersUseCase interface {
 	Login(email, password string) error
 	AddUser(newUser usersDto.CreateUserRequest) error
 	GetUserById(userId string) (usersEntity.UserData, error)
+	DeleteUserById(userId string) error
 }

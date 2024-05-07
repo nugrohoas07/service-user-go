@@ -43,3 +43,18 @@ func (usercase *usersUseCase) GetUserById(userId string) (usersEntity.UserData, 
 	}
 	return userData, nil
 }
+
+// TODO
+// error if user delete itself
+func (usercase *usersUseCase) DeleteUserById(userId string) error {
+	// check is user id valid
+	_, err := usercase.usersRepo.GetUserById(userId)
+	if err != nil {
+		return err
+	}
+	err = usercase.usersRepo.SoftDeleteUser(userId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
