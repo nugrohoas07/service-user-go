@@ -1,5 +1,7 @@
 package main
 
-func main() {
+import "service-user/app"
 
+func main() {
+	app.RunService()
 }
