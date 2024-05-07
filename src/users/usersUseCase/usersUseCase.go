@@ -3,6 +3,7 @@ package usersUseCase
 import (
 	"fmt"
 	"service-user/model/dto/usersDto"
+	"service-user/model/entity/usersEntity"
 	"service-user/src/users"
 )
 
@@ -33,4 +34,12 @@ func (usecase *usersUseCase) AddUser(newUser usersDto.CreateUserRequest) error {
 		return err
 	}
 	return nil
+}
+
+func (usercase *usersUseCase) GetUserById(userId string) (usersEntity.UserData, error) {
+	userData, err := usercase.usersRepo.GetUserById(userId)
+	if err != nil {
+		return usersEntity.UserData{}, err
+	}
+	return userData, nil
 }

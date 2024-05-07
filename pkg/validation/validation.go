@@ -65,6 +65,8 @@ func formatMessage(err validator.FieldError) string {
 		message = "minimum value is not exceed"
 	case "max":
 		message = "max value is exceed"
+	case "uuid4":
+		message = "format invalid"
 	}
 
 	return message

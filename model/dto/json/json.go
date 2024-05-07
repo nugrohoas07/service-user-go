@@ -11,7 +11,7 @@ type (
 	// JSONResponse - struct for json response success
 	jsonResponse struct {
 		Code    string      `json:"responseCode"`
-		Message string      `json:"responseMessage"`
+		Message string      `json:"message,omitempty"`
 		Data    interface{} `json:"data,omitempty"`
 	}
 

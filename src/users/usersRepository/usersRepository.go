@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"service-user/model/dto/usersDto"
+	"service-user/model/entity/usersEntity"
 	"service-user/src/users"
 )
 
@@ -22,6 +23,16 @@ func (repo *usersRepository) InsertUser(newUser usersDto.CreateUserRequest) erro
 		return err
 	}
 	return nil
+}
+
+func (repo *usersRepository) GetUserById(userId string) (usersEntity.UserData, error) {
+	var userData usersEntity.UserData
+	query := "SELECT id,fullname,email,password FROM users WHERE id = $1"
+	err := repo.db.QueryRow(query, userId).Scan(&userData.ID, &userData.FullName, &userData.Email, &userData.Password)
+	if err != nil {
+		return usersEntity.UserData{}, err
+	}
+	return userData, nil
 }
 
 func (repo *usersRepository) GetUserPassword(email string) (string, error) {

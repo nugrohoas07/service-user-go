@@ -11,4 +11,8 @@ type (
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required"`
 	}
+
+	Param struct {
+		ID string `uri:"id" binding:"required,uuid4"`
+	}
 )
