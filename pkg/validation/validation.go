@@ -67,6 +67,14 @@ func formatMessage(err validator.FieldError) string {
 		message = "max value is exceed"
 	case "uuid4":
 		message = "format invalid"
+	case "uppercase":
+		message = "does not contains uppercase letter"
+	case "lowercase":
+		message = "does not contains lowercase letter"
+	case "numeric":
+		message = "does not contain numeric value"
+	case "containsany":
+		message = "does not contain required value" + err.ActualTag()
 	}
 
 	return message
