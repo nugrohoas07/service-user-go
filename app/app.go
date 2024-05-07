@@ -11,10 +11,13 @@ import (
 	"service-user/router"
 	"strconv"
 	"time"
+	"unicode"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -107,6 +110,25 @@ func RunService() {
 		}
 	}()
 
+	var advancedPassValidator validator.Func = func(fl validator.FieldLevel) bool {
+		password := fl.Field().String()
+		var upperCase, lowerCase, number, special bool
+		for _, letter := range password {
+			switch {
+			case unicode.IsUpper(letter):
+				upperCase = true
+			case unicode.IsLower(letter):
+				lowerCase = true
+			case unicode.IsNumber(letter):
+				number = true
+			case unicode.IsPunct(letter) || unicode.IsSymbol(letter):
+				special = true
+			}
+		}
+		fmt.Println("up", upperCase, "low", lowerCase, "num", number, "special", special)
+		return upperCase && lowerCase && number && special
+	}
+
 	time.Local = time.FixedZone("Asia/Jakarta", 7*60*60)
 	r := gin.New()
 	r.Use(cors.New(cors.Config{
@@ -129,6 +151,10 @@ func RunService() {
 			return l.Output(os.Stdout).With().Logger()
 		}),
 	))
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("advancedpass", advancedPassValidator)
+	}
 
 	r.Use(gin.Recovery())
 

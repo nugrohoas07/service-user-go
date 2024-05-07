@@ -74,7 +74,9 @@ func formatMessage(err validator.FieldError) string {
 	case "numeric":
 		message = "does not contain numeric value"
 	case "containsany":
-		message = "does not contain required value" + err.ActualTag()
+		message = "does not contain required value"
+	case "advancedpass":
+		message = "password invalid"
 	}
 
 	return message
