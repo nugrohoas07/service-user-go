@@ -9,13 +9,13 @@ type (
 	CreateUserRequest struct {
 		FullName string `json:"fullname" binding:"required"`
 		Email    string `json:"email" binding:"required,email"`
-		Password string `json:"password" binding:"required,min=8"`
+		Password string `json:"password" binding:"required,min=8,advancedpass"`
 	}
 
 	UpdateUserRequest struct {
 		ID       string `json:"id" binding:"required,uuid4"`
 		FullName string `json:"fullname" binding:"omitempty"`
-		Password string `json:"password" binding:"omitempty"`
+		Password string `json:"password" binding:"omitempty,min=8,advancedpass"`
 	}
 
 	Param struct {
